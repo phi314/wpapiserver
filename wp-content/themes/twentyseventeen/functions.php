@@ -584,3 +584,33 @@ require get_parent_theme_file_path( '/inc/customizer.php' );
  * SVG icons functions and filters.
  */
 require get_parent_theme_file_path( '/inc/icon-functions.php' );
+
+add_action( 'rest_api_init', 'wp_rest_place_details' );
+function wp_rest_place_details(){
+    register_rest_field( 'place',
+        'place_categories',
+        array(
+            'get_callback'    => 'wp_rest_get_place_categories',
+            'update_callback' => null,
+            'schema'          => null,
+        )
+    );
+}
+function wp_rest_get_place_categories($place){
+    $place_categories = array();
+    $categories = wp_get_post_terms( $place['id'], 'place_category' );
+
+    foreach ($categories as $term) {
+        $term_link = get_term_link($term);
+        if ( is_wp_error( $term_link ) ) {
+            continue;
+        }
+        $place_categories[] = [
+            'term_id' => $term->term_id,
+            'name' => $term->name,
+            'link' => $term_link
+        ];
+    }
+    return $place_categories;
+
+}
